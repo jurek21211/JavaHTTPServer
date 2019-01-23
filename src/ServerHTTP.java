@@ -33,49 +33,46 @@ public class ServerHTTP {
                 try {
                     file = request.split(" ");
                     FileInputStream fis = new FileInputStream(file[1].substring(1));
+                    //int bytes = fis.available() * 8;
+                    //System.out.println(bytes);
                     String fileName = null;
+                    System.out.println("requested file name: " + file[1].substring(1) + "\n");
+                    fileName = file[1].substring(1);
+                    String fileExtension = "";
 
-                    if (file[1].substring(1).length() == 0)
-                        System.out.println("No file requested");
-                    else {
-                        System.out.println("requested file name: " + file[1].substring(1) + "\n");
-                        fileName = file[1].substring(1);
-                        String fileExtension = "";
-
-                        int fileNameLength = fileName.length();
-                        for (int i = fileNameLength - 4; i < fileNameLength; i++) {
-                            fileExtension += fileName.charAt(i);
-                        }
-                        System.out.println(fileExtension);
+                    int fileNameLength = fileName.length();
+                    for (int i = fileNameLength - 4; i < fileNameLength; i++) {
+                        fileExtension += fileName.charAt(i);
+                    }
+                    System.out.println(fileExtension);
 
 
+                    //response
+                    dataOutput.writeBytes("HTTP/1.0 200 OK\r\n");
+                    if (fileExtension.equalsIgnoreCase("html")) {
+                        dataOutput.writeBytes("Content-Type: text/html\r\n");
+                    } else {
+                        dataOutput.writeBytes("Content-Type: text\r\n");
+                    }
+                    dataOutput.writeBytes("Content-Length:" + /*bytes +*/"\r\n");
+                    dataOutput.writeBytes("\r\n");
 
-                        //response
-                        dataOutput.writeBytes("HTTP/1.0 200 OK\r\n");
-                        if (fileExtension.equalsIgnoreCase("html"))
-                            dataOutput.writeBytes("Content-Type: text/html\r\n");
-                        else
-                            dataOutput.writeBytes("Content-Type: text\r\n");
-                        dataOutput.writeBytes("Content-Length: \r\n");
-                        dataOutput.writeBytes("\r\n");
+                    //response body
+                    dataOutput.writeBytes("<html>\r\n");
+                    dataOutput.writeBytes("<H1>Strona testowa</H1></br>\r\n ");
 
-                        //response body
-                        dataOutput.writeBytes("<html>\r\n");
-                        dataOutput.writeBytes("<H1>Strona testowa</H1></br>\r\n ");
+                    byte[] buffer;
+                    buffer = new byte[1024];
+                    int n = 0;
 
-                        byte[] buffer;
-                        buffer = new byte[1024];
-                        int n = 0;
-
-                        while ((n = fis.read(buffer)) != -1) {
-                            dataOutput.write(buffer, 0, n);
-                            dataOutput.writeBytes("</br>");
-                        }
-
+                    while ((n = fis.read(buffer)) != -1) {
+                        dataOutput.write(buffer, 0, n);
                     }
                     dataOutput.writeBytes("</html>\r\n");
 
                 } catch (FileNotFoundException e) {
+                    dataOutput.writeBytes("HTTP/1.0 404 Not Found");
+                } catch (NoSuchFileException e) {
                     dataOutput.writeBytes("HTTP/1.0 404 Not Found");
                 }
 
